@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -14,7 +15,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::post('/getAllTokens', [ApiController::class, 'test']);
 
-Route::prefix('chat', function () {
-
+Route::prefix('/chat')->group(function () {
+    Route::post('/conversation', [ApiController::class, 'conversation']);
 });
