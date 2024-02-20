@@ -19,4 +19,11 @@ class helper
         return $isValid;
     }
 
+    public static function getErrorResponse($request)
+    {
+        $status = $request->getResponse()->getStatusCode();
+        return response()->json();
+    }
+
+
 }
