@@ -9,7 +9,7 @@ class helper
 {
     public static function checkToken($tokenHeader)
     {
-        $tokens = DB::connection('mysql')->select('select * from module_cdamp');
+        $tokens = DB::connection('mysql')->select('select * from module_cdamp.tokens');
         $isValid = false;
         foreach ($tokens as $token) {
             if ($token->token == $tokenHeader) {
@@ -34,7 +34,7 @@ class helper
                 "status" => 400,
                 "detail" => "The request is invalid."
             ];
-        }else if ($status = '401') {
+        }else if ($status == '401') {
             return [
                 "type" => "/problem/types/401",
                 "title" => "Unauthorized",
@@ -48,7 +48,7 @@ class helper
                 "status" => 403,
                 "detail" => "You have exceeded your quota."
             ];
-        }else if ($status = '503') {
+        }else{
             return [
                 "type" => "/problem/types/503",
                 "title" => "Service Unavailable",

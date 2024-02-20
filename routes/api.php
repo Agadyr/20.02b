@@ -19,4 +19,5 @@ Route::post('/getAllTokens', [ApiController::class, 'test']);
 
 Route::prefix('/chat')->group(function () {
     Route::post('/conversation', [ApiController::class, 'conversation']);
+    Route::post('/conversation/{conversation}', [ApiController::class, 'continueConversation']);
 });
