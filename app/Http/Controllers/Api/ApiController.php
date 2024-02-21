@@ -27,6 +27,10 @@ class ApiController extends Controller
         if (!helper::checkToken($request->header('x-api-token'))) {
             return helper::getErrorResponseDataByStatus('401');
         }
+        if (!helper::checkToken($request->header('x-api-token'))) {
+            return helper::getErrorResponse('401');
+        }
+
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'prompt' => 'required'
         ]);
@@ -106,7 +110,7 @@ class ApiController extends Controller
             if (str_contains($data, '<EOF>')) {
                 $conversation->is_final = true;
                 $conversation->save();
-            }else{
+            } else {
                 return helper::getErrorResponseDataByStatus('503');
             }
         }

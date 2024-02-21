@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers\helper;
 
-use Doctrine\Inflector\Rules\NorwegianBokmal\Rules;
 use Illuminate\Support\Facades\DB;
-use MongoDB\Driver\Query;
 
 class helper
 {
+
     public static function checkToken($tokenHeader)
     {
         $tokens = DB::connection('mysql')->select('select * from module_cdamp.tokens');
@@ -28,7 +27,6 @@ class helper
 
     public static function checkQuota($tokenHeader)
     {
-
         $token = DB::connection('mysql')->table('module_cdamp.tokens')->where('token', $tokenHeader)->first();
         $workspace = DB::connection('mysql')->table('module_cdamp.workspaces')->where('id', $token->workspace)->first();
         $quota = DB::connection('mysql')->table('module_cdamp.billingquotas')->where('workspace', $workspace->id)->first();
@@ -43,8 +41,18 @@ class helper
         }
 
         return true;
+    }
 
-
+    public static function addUsage($ms,$headerToken,$serviceId)
+    {
+        $token = DB::connection('mysql')->table('module_cdamp.tokens')->where('token', $headerToken)->first();
+        $data = [
+            'duration_in_ms' => $ms,
+            'api_token_id' => $token->id,
+            'service_id' => $serviceId,
+            'usage_started_at' => now(),
+        ];
+        DB::connection('mysql')->table('module_cdamp.service_usages')->insert($data);
     }
 
     public static function getErrorResponseDataByStatus($status)
