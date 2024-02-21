@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 
 class helper
 {
+    public static $pattern = '/<EOF> Заняло (\d+) мс/';
 
     public static function checkToken($tokenHeader)
     {
