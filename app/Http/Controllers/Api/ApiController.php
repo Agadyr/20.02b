@@ -140,4 +140,54 @@ class ApiController extends Controller
         ]);
     }
 
+    public function getPartConversation(Request $request, Conversation $conversation)
+    {
+        if (!helper::checkToken($request->header('x-api-token'))) {
+            return helper::getErrorResponseDataByStatus('401');
+        }
+
+        if (!helper::checkQuota($request->header('x-api-token'))) {
+            return helper::getErrorResponseDataByStatus('403');
+        }
+
+        $client = new Client();
+
+        try {
+            $response = $client->get('http://localhost:8001/api/conversation/' . $conversation->conversation_id,
+                [
+                    'json' => [
+                        'prompt' => $request->get('prompt')
+                    ]
+                ]);
+        } catch (RequestException $requestException) {
+            if ($requestException->hasResponse()) {
+                return helper::getErrorResponse($requestException);
+            }
+        }
+
+        $data = json_decode($response->getBody()->getContents());
+        $final = false;
+
+
+        if (preg_match(helper::$pattern, $data, $matches)) {
+            if ($matches[1]) {
+                $millis = ((int)$matches[1]);
+                $final = true;
+                helper::addUsage($millis, $request->header('x-api-token'), 1);
+            }
+        }
+
+        if ($final) {
+            $conversation->is_final = true;
+            $conversation->save();
+        }
+
+        return \response()->json([
+            'conversation_id' => $conversation->conversation_id,
+            'response' => $data,
+            'is_final' => $conversation->is_final
+        ]);
+
+    }
+
 }
