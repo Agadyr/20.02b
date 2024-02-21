@@ -5,14 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\helper\helper;
 use App\Models\Conversation;
-use Dotenv\Validator;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-use http\Env\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use PhpParser\Node\Stmt\Finally_;
-use Psy\Util\Str;
 
 class ApiController extends Controller
 {
