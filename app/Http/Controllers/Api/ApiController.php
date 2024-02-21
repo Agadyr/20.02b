@@ -8,6 +8,7 @@ use App\Models\Conversation;
 use Dotenv\Validator;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use http\Env\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PhpParser\Node\Stmt\Finally_;
@@ -78,6 +79,11 @@ class ApiController extends Controller
         if (!helper::checkToken($request->header('x-api-token'))) {
             return helper::getErrorResponse('401');
         }
+
+        if (!helper::checkQuota($request->header('x-api-token'))) {
+            return helper::getErrorResponseDataByStatus('403');
+        }
+
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'prompt' => 'required'
         ]);

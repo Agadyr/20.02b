@@ -4,6 +4,7 @@ namespace App\Http\Controllers\helper;
 
 use Doctrine\Inflector\Rules\NorwegianBokmal\Rules;
 use Illuminate\Support\Facades\DB;
+use MongoDB\Driver\Query;
 
 class helper
 {
@@ -22,7 +23,28 @@ class helper
     public static function getErrorResponse($request)
     {
         $status = $request->getResponse()->getStatusCode();
-        return response()->json(helper::getErrorResponseDataByStatus($status),$status);
+        return response()->json(helper::getErrorResponseDataByStatus($status), $status);
+    }
+
+    public static function checkQuota($tokenHeader)
+    {
+
+        $token = DB::connection('mysql')->table('module_cdamp.tokens')->where('token', $tokenHeader)->first();
+        $workspace = DB::connection('mysql')->table('module_cdamp.workspaces')->where('id', $token->workspace)->first();
+        $quota = DB::connection('mysql')->table('module_cdamp.billingquotas')->where('workspace', $workspace->id)->first();
+        $bills = DB::connection('mysql')->table('module_cdamp.billings')->where('token', $token->id)->sum('total');
+
+        if (!$quota) {
+            return true;
+        }
+
+        if ($bills > $quota->limit) {
+            return false;
+        }
+
+        return true;
+
+
     }
 
     public static function getErrorResponseDataByStatus($status)
@@ -34,21 +56,21 @@ class helper
                 "status" => 400,
                 "detail" => "The request is invalid."
             ];
-        }else if ($status == '401') {
+        } else if ($status == '401') {
             return [
                 "type" => "/problem/types/401",
                 "title" => "Unauthorized",
                 "status" => 401,
                 "detail" => "The header X-API-TOKEN is missing or invalid."
             ];
-        }else if ($status == '403') {
+        } else if ($status == '403') {
             return [
                 "type" => "/problem/types/403",
                 "title" => "Quota Exceeded",
                 "status" => 403,
                 "detail" => "You have exceeded your quota."
             ];
-        }else{
+        } else {
             return [
                 "type" => "/problem/types/503",
                 "title" => "Service Unavailable",
