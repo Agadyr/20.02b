@@ -330,6 +330,50 @@ class ApiController extends Controller
 
     }
 
+    public function upscaleImage(Request $request)
+    {
+        if (!helper::checkToken($request->header('x-api-token'))) {
+            return helper::getErrorResponseDataByStatus('401');
+        }
+        if (!helper::checkQuota($request->header('x-api-token'))) {
+            return helper::getErrorResponseDataByStatus('403');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'resource_id' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return helper::getErrorResponseDataByStatus('400');
+        }
+
+        $client = new Client();
+
+        try {
+            $response = $client->post('http://localhost:8001/api/upscale', [
+                'form_params' => [
+                    'resource_id' => $request->get('resource_id')
+                ]
+            ]);
+        } catch (RequestException $requestException) {
+            if ($requestException->hasResponse()) {
+                helper::getErrorResponse($requestException);
+            }
+        }
+
+        $data = json_decode($response->getBody()->getContents());
+
+        $job = Job::create([
+            'job_id' => $data->job_id,
+            'created_at' => $data->started_at
+        ]);
+
+        return \response()->json([
+            'job_id' => $job->job_id
+        ]);
+
+    }
+
 
 
 }
