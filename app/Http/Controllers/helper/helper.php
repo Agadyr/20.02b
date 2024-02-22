@@ -56,6 +56,19 @@ class helper
         DB::connection('mysql')->table('module_cdamp.service_usages')->insert($data);
     }
 
+    public static function addBills($ms, $headerToken, $total)
+    {
+        $token = DB::connection('mysql')->table('module_cdamp')->where('token', $headerToken);
+
+        $data = [
+            'time' => $ms,
+            'total' => $total,
+            'token' => $token->id
+        ];
+
+        DB::connection('mysql')->table('module_cdamp.billings')->insert($data);
+    }
+
     public static function getErrorResponseDataByStatus($status)
     {
         if ($status == '400') {
