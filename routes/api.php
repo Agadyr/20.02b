@@ -22,3 +22,11 @@ Route::prefix('/chat')->group(function () {
     Route::post('/conversation/{conversation:conversation_id}', [ApiController::class, 'continueConversation']);
     Route::get('/conversation/{conversation:conversation_id}', [ApiController::class, 'getPartConversation']);
 });
+
+Route::prefix('/imagegeneration')->group(function () {
+    Route::post('/generation', [ApiController::class, 'generateImage']);
+    Route::post('/upscale', [ApiController::class, 'upscaleImage']);
+    Route::post('/zoomin', [ApiController::class, 'zoomIn']);
+    Route::get('/getStatusJob/{job:job_id}', [ApiController::class, 'getStatusJob']);
+    Route::get('/getResultJob/{job:job_id}', [ApiController::class, 'getResultJob']);
+});
