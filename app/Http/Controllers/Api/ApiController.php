@@ -282,6 +282,54 @@ class ApiController extends Controller
 
     }
 
+    public function getResultJob(Request $request, Job $job)
+    {
+        if (!helper::checkToken($request->header('x-api-token'))) {
+            return helper::getErrorResponseDataByStatus('401');
+        }
+
+        if (!helper::checkQuota($request->header('x-api-token'))) {
+            return helper::getErrorResponseDataByStatus('403');
+        }
+
+        $client = new Client();
+
+        try {
+            $response = $client->get('http://localhost:8001/api/result/' . $job->job_id);
+        } catch (RequestException $requestException) {
+            if ($requestException->hasResponse()) {
+                return helper::getErrorResponse($requestException);
+            }
+        }
+
+        $data = json_decode($response->getBody()->getContents());
+
+        $job->is_final = true;
+        $job->resource_id = $data->resource_id;
+        $job->image_url = $data->image_url;
+        $job->save();
+
+        if (!$job->image_local_url) {
+            $path = 'uploads/' . Str::random(10) . '_img.jpg';
+            $img = file_get_contents($data->image_url);
+            Storage::disk('public')->put($path, $img);
+            $job->image_local_url = $path;
+            $job->save();
+        }
+        if ($data->finished_at) {
+            $finished_at = Carbon::parse($data->finished_at);
+            $seconds = $finished_at->diff($job->created_at)->s;
+            $ms = ((int)$seconds * 1000);
+            helper::addUsage($ms, $request->header('x-api-token'), 2);
+        }
+
+        return \response()->json([
+            'resourse_id' => $data->resource_id,
+            'image_url' => $data->image_url
+        ]);
+
+    }
+
 
 
 }
