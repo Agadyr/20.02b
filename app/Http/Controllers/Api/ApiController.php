@@ -374,6 +374,46 @@ class ApiController extends Controller
 
     }
 
+    public function zoomIn(Request $request)
+    {
+        if (!helper::checkToken($request->header('x-api-token'))) {
+            return helper::getErrorResponseDataByStatus('401');
+        }
+
+        if (!helper::checkQuota($request->header('x-api-token'))) {
+            return helper::getErrorResponseDataByStatus('403');
+        }
+        $validator = Validator::make($request->all(), [
+            'resource_id' => 'required'
+        ]);
+        if ($validator->fails()) {
+            return helper::getErrorResponseDataByStatus('400');
+        }
+        $client = new Client();
+
+        try {
+            $response = $client->post('http://localhost:8001/api/zoom/in', [
+                'json' => [
+                    'resource_id' => $request->get('resource_id'),
+                ]
+            ]);
+        } catch (RequestException $requestException) {
+            if ($requestException->hasResponse()) {
+                return helper::getErrorResponse($requestException);
+            }
+        }
+
+        $data = json_decode($response->getBody()->getContents());
+
+        Job::create([
+            'job_id' => $data->job_id,
+            'created_at' => $data->started_at
+        ]);
+
+        return \response()->json([
+            'job_id' => $data->job_id
+        ]);
+    }
 
 
 }
