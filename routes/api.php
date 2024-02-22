@@ -27,6 +27,7 @@ Route::prefix('/imagegeneration')->group(function () {
     Route::post('/generation', [ApiController::class, 'generateImage']);
     Route::post('/upscale', [ApiController::class, 'upscaleImage']);
     Route::post('/zoomin', [ApiController::class, 'zoomIn']);
+    Route::post('/zoomOut', [ApiController::class, 'zoomOut']);
     Route::get('/getStatusJob/{job:job_id}', [ApiController::class, 'getStatusJob']);
     Route::get('/getResultJob/{job:job_id}', [ApiController::class, 'getResultJob']);
 });
