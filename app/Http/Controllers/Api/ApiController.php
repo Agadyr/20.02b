@@ -238,6 +238,50 @@ class ApiController extends Controller
 
     }
 
+    public function getStatusJob(Request $request, Job $job)
+    {
+        if (!helper::checkToken($request->header('x-api-token'))) {
+            return helper::getErrorResponseDataByStatus('401');
+        }
+
+        if (!helper::checkQuota($request->header('x-api-token'))) {
+            return helper::getErrorResponseDataByStatus('403');
+        }
+
+        $client = new Client();
+
+        try {
+            $response = $client->get("http://localhost:8001/api/status/$job->job_id");
+        } catch (RequestException $requestException) {
+            if ($requestException->hasResponse()) {
+                return helper::getErrorResponse($requestException);
+            }
+        }
+
+        $data = json_decode($response->getBody()->getContents());
+
+        $job->preview_url = $data->image_url;
+
+        if (!$job->preview_local_url) {
+            $path = 'uploads/' . Str::random(10) . '_img.jpg';
+            $img = file_get_contents($data->image_url);
+            Storage::disk('public')->put($path, $img);
+            $job->preview_local_url = $path;
+        }
+        if ($data->progress == 100) {
+            $job->is_final = true;
+        }
+
+        $job->save();
+
+        return \response()->json([
+            'status' => $data->status,
+            'progress' => $data->progress,
+            'image_url' => $data->image_url
+        ]);
+
+    }
+
 
 
 }
