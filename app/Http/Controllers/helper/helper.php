@@ -58,7 +58,7 @@ class helper
 
     public static function addBills($ms, $headerToken, $total)
     {
-        $token = DB::connection('mysql')->table('module_cdamp')->where('token', $headerToken);
+        $token = DB::connection('mysql')->table('module_cdamp.tokens')->where('token', $headerToken)->first();
 
         $data = [
             'time' => $ms,

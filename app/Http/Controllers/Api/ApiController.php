@@ -459,6 +459,72 @@ class ApiController extends Controller
 
     }
 
+    public function recognizeImage(Request $request)
+    {
+        if (!helper::checkToken($request->header('x-api-token'))) {
+            return helper::getErrorResponseDataByStatus('401');
+        }
 
+        if (!helper::checkQuota($request->header('x-api-token'))) {
+            return helper::getErrorResponseDataByStatus('403');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'image' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return helper::getErrorResponseDataByStatus('400');
+        }
+
+        $client = new Client();
+        $image = $request->file('image');
+        $multipart = [
+            [
+                'name' => 'image',
+                'contents' => fopen($image->getRealPath(), 'r')
+            ]
+        ];
+        $started = microtime(true);
+        try {
+            $response = $client->post('http://localhost:8001/api/recognize', [
+                'multipart' => $multipart
+            ]);
+        } catch (RequestException $requestException) {
+            if ($requestException->hasResponse()) {
+                return helper::getErrorResponse($requestException);
+            }
+        }
+        $endtime = microtime(true);
+
+        $seconds = round($endtime - $started, 3);
+        $total = $seconds * 0.5;
+
+        helper::addBills($seconds, $request->header('x-api-token'), $total);
+
+        $data = json_decode($response->getBody()->getContents());
+        $customObjects = [];
+        $imageData = getimagesize($image->path());
+        $width = $imageData[0];
+        $height = $imageData[0];
+
+        foreach ($data->objects as $object) {
+            $customObjects[] = [
+                'name' => $object->label,
+                'probability' => $object->probability,
+                'bounding_box' => [
+                    'x' => $object->bounding_box->left,
+                    'y' => $object->bounding_box->top,
+                    'width' => ((int)$width) - $object->bounding_box->left - $object->bounding_box->right,
+                    'height' => ((int)$height) - $object->bounding_box->top - $object->bounding_box->bottom,
+                ]
+            ];
+        }
+        return \response()->json([
+            'objects' => $customObjects
+        ]);
+
+
+    }
 
 }

@@ -31,3 +31,5 @@ Route::prefix('/imagegeneration')->group(function () {
     Route::get('/getStatusJob/{job:job_id}', [ApiController::class, 'getStatusJob']);
     Route::get('/getResultJob/{job:job_id}', [ApiController::class, 'getResultJob']);
 });
+
+Route::post('/imageRecognition', [ApiController::class, 'recognizeImage']);
